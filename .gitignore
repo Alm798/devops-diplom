@@ -2,20 +2,28 @@
 **/.terraform/*
 *.tfstate
 *.tfstate.*
-crash.log
-crash.*.log
-*.tfvars
-*.tfvars.json
 .terraform.lock.hcl
+crash.log
 
 # Secrets
 *.pem
 *.key
-*.json
+*.p12
 *.env
+*.tfvars
+*.tfvars.json
 keys/
 
-# OS / Editor
-.DS_Store
+# IDE
 .vscode/
 .idea/
+
+# OS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+
+# Logs
+*.log
