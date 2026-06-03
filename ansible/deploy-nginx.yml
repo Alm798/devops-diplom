@@ -1,0 +1,25 @@
+---
+- name: Развертывание тестового приложения nginx
+  hosts: k8s_master
+  become: false
+  tasks:
+    - name: Создание namespace
+      shell: kubectl create namespace app --dry-run=client -o yaml | kubectl apply -f -
+
+    - name: Создание deployment
+      shell: kubectl create deployment nginx --image=nginx:1.27 --replicas=2 -n app --dry-run=client -o yaml | kubectl apply -f -
+
+    - name: Создание service
+      shell: kubectl expose deployment nginx --name=nginx-service --port=80 --target-port=80 -n app --dry-run=client -o yaml | kubectl apply -f -
+
+    - name: Создание ingress
+      shell: kubectl create ingress nginx-ingress --class=nginx --rule="nginx.local/=nginx-service:80" -n app --dry-run=client -o yaml | kubectl apply -f -
+
+    - name: Проверка ресурсов
+      command: kubectl get all,ingress -n app
+      register: app_resources
+      changed_when: false
+
+    - name: Вывод ресурсов
+      debug:
+        var: app_resources.stdout_lines
