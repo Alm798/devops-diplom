@@ -1,0 +1,79 @@
+data "yandex_iam_service_account" "terraform_sa" {
+  name = "terrafom-sa"
+}
+
+resource "yandex_kubernetes_cluster" "diplom_k8s" {
+  name        = "diplom-k8s"
+  description = "Managed Kubernetes cluster for DevOps diploma"
+
+  network_id = data.yandex_vpc_network.default.id
+
+  master {
+    regional {
+      region = "ru-central1"
+
+      location {
+        zone      = "ru-central1-a"
+        subnet_id = data.yandex_vpc_subnet.subnet_a.id
+      }
+
+      location {
+        zone      = "ru-central1-b"
+        subnet_id = data.yandex_vpc_subnet.subnet_b.id
+      }
+
+      location {
+        zone      = "ru-central1-d"
+        subnet_id = data.yandex_vpc_subnet.subnet_d.id
+      }
+    }
+
+    public_ip = true
+  }
+
+  service_account_id      = data.yandex_iam_service_account.terraform_sa.id
+  node_service_account_id = data.yandex_iam_service_account.terraform_sa.id
+
+  release_channel = "REGULAR"
+}
+
+resource "yandex_kubernetes_node_group" "workers" {
+  cluster_id = yandex_kubernetes_cluster.diplom_k8s.id
+  name       = "diplom-workers"
+
+  allocation_policy {
+    location {
+      zone = "ru-central1-a"
+    }
+  }
+
+  scale_policy {
+    fixed_scale {
+      size = 2
+    }
+  }
+
+  instance_template {
+    platform_id = "standard-v3"
+
+    resources {
+      cores         = 2
+      memory        = 2
+      core_fraction = 20
+    }
+
+    boot_disk {
+      type = "network-hdd"
+      size = 30
+    }
+
+    scheduling_policy {
+      preemptible = true
+    }
+
+    network_interface {
+      subnet_ids = [data.yandex_vpc_subnet.subnet_a.id]
+      nat        = true
+    }
+  }
+}
