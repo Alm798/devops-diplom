@@ -1,0 +1,40 @@
+---
+# Установка мониторинга Kubernetes через Helm
+#
+# Компоненты:
+# - Prometheus
+# - Grafana
+# - Alertmanager
+# - node-exporter
+# - kube-state-metrics
+
+- name: Установка стека мониторинга kube-prometheus-stack
+  hosts: k8s_master
+  become: false
+
+  tasks:
+
+    - name: Добавление Helm-репозитория prometheus-community
+      command: helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+      register: add_repo
+      changed_when: "'has been added' in add_repo.stdout"
+      failed_when: add_repo.rc != 0 and 'already exists' not in add_repo.stderr
+
+    - name: Обновление списка Helm-репозиториев
+      command: helm repo update
+      changed_when: false
+
+    - name: Установка или обновление kube-prometheus-stack
+      command: >
+        helm upgrade --install monitoring prometheus-community/kube-prometheus-stack
+        --namespace monitoring
+        --create-namespace
+
+    - name: Проверка Pod мониторинга
+      command: kubectl get pods -n monitoring
+      register: monitoring_pods
+      changed_when: false
+
+    - name: Вывод информации о Pod мониторинга
+      debug:
+        var: monitoring_pods.stdout_lines
