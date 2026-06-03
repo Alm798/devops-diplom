@@ -1,0 +1,18 @@
+---
+- name: Install Helm on Kubernetes master
+  hosts: k8s_master
+  become: true
+  tasks:
+    - name: Install Helm
+      shell: curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+      args:
+        creates: /usr/local/bin/helm
+
+    - name: Check Helm version
+      command: helm version
+      register: helm_version
+      changed_when: false
+
+    - name: Show Helm version
+      debug:
+        var: helm_version.stdout

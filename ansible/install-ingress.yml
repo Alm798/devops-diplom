@@ -1,0 +1,43 @@
+---
+# Установка Ingress NGINX через Helm
+#
+# Назначение:
+# Ingress NGINX используется для публикации сервисов Kubernetes
+# через HTTP/HTTPS и выступает в роли обратного прокси.
+#
+# После установки через Ingress будут публиковаться:
+# - Grafana
+# - Prometheus
+# - Тестовое приложение
+# - Сервисы дипломного проекта
+
+- name: Установка Ingress NGINX
+  hosts: k8s_master
+  become: false
+
+  tasks:
+
+    - name: Добавление репозитория ingress-nginx
+      command: helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+      register: add_repo
+      changed_when: "'has been added' in add_repo.stdout"
+      failed_when: add_repo.rc != 0 and 'already exists' not in add_repo.stderr
+
+    - name: Обновление списка Helm-репозиториев
+      command: helm repo update
+      changed_when: false
+
+    - name: Установка или обновление Ingress NGINX
+      command: >
+        helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx
+        --namespace ingress-nginx
+        --create-namespace
+
+    - name: Проверка Pod Ingress NGINX
+      command: kubectl get pods -n ingress-nginx
+      register: ingress_pods
+      changed_when: false
+
+    - name: Вывод информации о Pod Ingress NGINX
+      debug:
+        var: ingress_pods.stdout_lines
