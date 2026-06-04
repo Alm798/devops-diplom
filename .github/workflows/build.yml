@@ -1,4 +1,4 @@
-name: Build and Push Docker Image
+name: Build, Push and Deploy
 
 on:
   push:
@@ -10,22 +10,41 @@ permissions:
   packages: write
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Получение исходного кода
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Вход в GitHub Container Registry
+      - name: Login to GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Сборка Docker-образа
-        run: docker build -t ghcr.io/alm798/devops-diplom:latest ./app
+      - name: Build image
+        run: |
+          docker build -t ghcr.io/alm798/devops-diplom:latest ./app
 
-      - name: Публикация Docker-образа
-        run: docker push ghcr.io/alm798/devops-diplom:latest
+      - name: Push image
+        run: |
+          docker push ghcr.io/alm798/devops-diplom:latest
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBE_CONFIG }}" > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl set image deployment/nginx \
+            nginx=ghcr.io/alm798/devops-diplom:latest \
+            -n app
+
+          kubectl rollout status deployment/nginx -n app
