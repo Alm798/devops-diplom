@@ -5,7 +5,13 @@
 **Михеев Алексей**
 
 ---
-
+# Ключевые ссылки
+**Ключевые ссылки** :
+Веб-приложение: http://158.160.50.135:30591
+Grafana Dashboard: http://158.160.50.135:30300
+Prometheus Targets:http://158.160.50.135:9090/targets
+GitHub Actions:https://github.com/Alm798/devops-diplom/actions
+Репозиторий:https://github.com/Alm798/devops-diplom
 # Цель проекта
 
 Целью проекта является создание облачной инфраструктуры в Yandex Cloud и автоматизация полного жизненного цикла приложения с использованием современных DevOps-подходов.
