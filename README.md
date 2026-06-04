@@ -280,7 +280,7 @@ http://158.160.50.135:9090/
 
 ## Kubernetes Cluster
 
-![Cluster](img/cluster.png)
+![Cluster](img/ans_cluster.png)
 
 ## GitHub Actions
 
